@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso — Tu Marca</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* Fondo de video */
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.4);
+    }
+
+    /* Contenedor principal */
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Logo */
+    .logo {
+      margin-bottom: 40px;
+    }
+
+    .logo img {
+      width: 200px;
+      max-width: 80%;
+      filter: brightness(1.1);
+    }
+
+    /* Título */
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.1em;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+
+    /* Formulario de contraseña */
+    .password-box {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 350px;
+    }
+
+    .password-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1em;
+      outline: none;
+    }
+
+    .password-box button {
+      background: white;
+      border: none;
+      color: black;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .password-box button:hover {
+      background: #e3b04b;
+      color: white;
+    }
+
+    /* Icono inferior (por ejemplo, Instagram) */
+    .social {
+      position: absolute;
+      bottom: 30px;
+      font-size: 1.4em;
+    }
+
+    .social a {
+      color: white;
+      text-decoration: none;
+      transition: opacity 0.3s;
+    }
+
+    .social a:hover {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- VIDEO DE FONDO -->
+  <video autoplay muted loop>
+    <source src="videom.mp4" type="video/mp4">
+    Tu navegador no soporta el video de fondo.
+  </video>
+
+  <!-- MÚSICA DE FONDO -->
+  <audio id="bg-music" autoplay loop>
+    <source src="mus.mp3" type="audio/mpeg">
+    Tu navegador no soporta el audio.
+  </audio>
+
+  <!-- CONTENIDO -->
+  <div class="container" onclick="enableMusic()">
+    <div class="logo">
+      <img src="montanaintro.png" alt="Logo de tu marca">
+    </div>
+
+    <h1>Acceso</h1>
+    <p>Ingresa la contraseña para continuar</p>
+
+    <div class="password-box">
+      <input type="password" id="passwordInput" placeholder="Contraseña">
+      <button onclick="checkPassword()">→</button>
+    </div>
+  </div>
+
+  <div class="social">
+    <a href="https://instagram.com" target="_blank">📸</a>
+  </div>
+
+  <!-- SCRIPT DE CONTRASEÑA Y AUDIO -->
+  <script>
+    // Función de acceso
+    function checkPassword() {
+      const password = document.getElementById('passwordInput').value;
+      if (password === "777") {
+        window.location.href = "tienda.html";
+      } else {
+        alert("Contraseña incorrecta");
+      }
+    }
+
+    // Intentar reproducir música en móviles
+    const music = document.getElementById("bg-music");
+
+    function enableMusic() {
+      if (music.paused) {
+        music.play().catch(err => console.log("Autoplay bloqueado:", err));
+      }
+    }
+
+    // Intentar reproducir automáticamente en desktop
+    window.addEventListener("load", () => {
+      music.volume = 0.5; // volumen moderado
+      music.play().catch(() => {
+        console.log("El usuario debe interactuar para iniciar el audio.");
+      });
+    });
+  </script>
+
+</body>
+</html>

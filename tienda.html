@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Montana Store — SPA</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    :root{
+      --glass-bg: rgba(255,255,255,0.10);
+      --accent: #e3b04b;
+      --text: #fff;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Poppins',sans-serif;
+      background:#000;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow-x:hidden;
+    }
+
+    /* Video de fondo */
+    video.bg-video{
+      position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3;filter:brightness(0.36);
+    }
+
+    /* Música (oculta) */
+    audio#music{display:none}
+
+    /* NAV / header */
+    header{
+      position:fixed;left:0;right:0;top:0;height:72px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 26px;z-index:30;
+      background: rgba(0,0,0,0.15);
+      backdrop-filter: blur(12px);
+      border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .brand{font-weight:700;letter-spacing:1px}
+    .actions{display:flex;gap:14px;align-items:center}
+
+    /* Cart icon */
+    .cart-btn{
+      position:relative;
+      background:var(--glass-bg);
+      border:1px solid rgba(255,255,255,0.08);
+      padding:8px 12px;border-radius:12px;cursor:pointer;
+      display:flex;align-items:center;gap:8px;
+    }
+    .cart-count{
+      position:absolute;top:-8px;right:-8px;background:#fff;color:#000;border-radius:50%;
+      padding:3px 7px;font-size:12px;font-weight:700;
+    }
+
+    /* container / layout */
+    main{
+      padding:110px 6% 80px;
+      min-height:100vh;
+      transition:opacity .45s ease;
+      z-index:2;position:relative;
+    }
+
+    /* Fade helpers (corregido) */
+    .fade {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .45s ease;
+    }
+    .visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Grid de cards */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:28px;
+      align-items:start;
+      position:relative;
+      visibility:visible;
+      transition:opacity .45s ease;
+    }
+
+    /* Liquid glass card */
+    .card{
+      background:var(--glass-bg);
+      border:1px solid rgba(255,255,255,0.14);
+      border-radius:20px;
+      padding:18px;
+      text-align:center;
+      backdrop-filter:blur(18px) saturate(160%);
+      -webkit-backdrop-filter:blur(18px) saturate(160%);
+      box-shadow:0 8px 30px rgba(0,0,0,0.5);
+      position:relative;cursor:pointer;overflow:hidden;
+      transition:transform .28s ease,box-shadow .28s ease;
+    }
+    .card::before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0.02));
+      opacity:.12;pointer-events:none;
+    }
+    .card:hover{transform:translateY(-8px);box-shadow:0 18px 60px rgba(0,0,0,0.6)}
+    .card img{width:86%;height:180px;object-fit:cover;border-radius:14px;margin:6px auto;display:block}
+    .card h3{font-size:1.05rem;margin-top:10px}
+    .card p.price{color:var(--accent);font-weight:700;margin-top:6px}
+
+    /* Producto detalle (reusa glass) */
+    .detail{
+      display:flex;
+      justify-content:center;align-items:center;min-height:70vh;
+      padding:40px 20px;
+      position:absolute;top:0;left:0;width:100%;
+      opacity:0;visibility:hidden;
+      transition:opacity .45s ease;
+    }
+    .detail.visible{opacity:1;visibility:visible;position:relative;}
+
+    .detail-card{
+      background:var(--glass-bg);
+      border-radius:22px;padding:30px;
+      max-width:980px;width:100%;
+      display:flex;gap:30px;align-items:center;backdrop-filter:blur(20px);
+      box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    }
+    .detail-card img{width:360px;height:auto;border-radius:16px;object-fit:cover}
+    .detail-info{flex:1;color:#fff}
+    .detail-info h1{font-size:1.8rem;margin-bottom:8px}
+    .detail-info p.desc{color:#e9e9e9;opacity:.9;margin-bottom:14px}
+    .detail-info p.price{font-weight:800;color:var(--accent);font-size:1.25rem;margin-bottom:18px}
+
+    .btn-row{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+    .btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+    .btn.buy{background:var(--accent);color:#111}
+    .btn.add{background:rgba(255,255,255,0.14);color:#fff;border:1px solid rgba(255,255,255,0.06)}
+
+    /* Modal de gracias */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:60;
+    }
+    .modal{
+      background:rgba(255,255,255,0.06);backdrop-filter:blur(14px);border-radius:14px;padding:26px 28px;width:90%;max-width:420px;
+      border:1px solid rgba(255,255,255,0.12);text-align:center;color:#fff;box-shadow:0 12px 40px rgba(0,0,0,0.6);
+      transform:translateY(10px);opacity:0;transition:all .35s ease;
+    }
+    .modal.show{transform:translateY(0);opacity:1}
+    .modal h2{margin-bottom:8px}
+    .modal p{opacity:.9;margin-bottom:14px}
+    .modal .close{margin-top:6px;padding:8px 12px;border-radius:8px;border:none;background:#fff;color:#000;cursor:pointer;font-weight:700}
+
+    /* Toast */
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(0,0,0,0.6);color:#fff;padding:10px 14px;border-radius:12px;z-index:70;display:none}
+
+    /* Responsive */
+    @media (max-width:900px){
+      .detail-card{flex-direction:column;align-items:center;padding:20px}
+      .detail-card img{width:80%}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Video y música -->
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="videom.mp4" type="video/mp4">
+  </video>
+
+  <audio id="music" autoplay loop>
+    <source src="mus.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">Montana</div>
+    <div class="actions">
+      <div class="cart-btn" id="cartBtn" title="Ver carrito">
+        🛒 <span id="cartCount" class="cart-count">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main SPA area -->
+  <main id="app">
+    <section id="catalog" class="visible">
+      <div class="grid" id="gridProducts"></div>
+    </section>
+
+    <section id="detail" class="detail">
+      <div class="detail-card" id="detailCard"></div>
+    </section>
+  </main>
+
+  <!-- Modal "Gracias por tu compra" -->
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" id="thankModal" role="dialog" aria-modal="true">
+      <h2>Gracias por tu compra ✨</h2>
+      <p>Tu pedido se agregó correctamente. Pronto te contactaremos para el envío.</p>
+      <button class="close" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Agregado al carrito</div>
+
+  <script>
+    const products = [
+      { id:1, title:"Playera Perlas Negras", price:1200, img:"cami1.jpg", desc:"Edición limitada con incrustaciones de cristales. Algodón premium y detalles bordados." },
+      { id:2, title:"Playera Hand", price:699, img:"cami2.jpg", desc:"Playera de corte oversize, feel suave y estampado minimal." },
+      { id:3, title:"Playera Ny 1", price:499, img:"cami3.jpg", desc:"Gorra clásica con logo bordado y ajuste trasero." },
+      { id:4, title:"Playera Milloneta", price:1100, img:"cami4.jpg", desc:"Sudadera cómoda y cálida con acabados premium." },
+      { id:5, title:"Playera rey de reyes", price:850, img:"cami5.jpg", desc:"Joggers slim con tejido transpirable." },
+      { id:6, title:"Playera Exodo", price:650, img:"cami6.jpg", desc:"Camiseta de algodón con diseño streetwear." },
+      { id:7, title:"Playera Ny Rico o muerto", price:1250, img:"cami7.jpg", desc:"Sudadera premium edición nocturna con detalles reflectantes." }
+    ];
+
+    const grid = document.getElementById('gridProducts');
+    const catalog = document.getElementById('catalog');
+    const detail = document.getElementById('detail');
+    const detailCard = document.getElementById('detailCard');
+    const cartCountEl = document.getElementById('cartCount');
+    const cartBtn = document.getElementById('cartBtn');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const thankModal = document.getElementById('thankModal');
+    const toast = document.getElementById('toast');
+    let cart = JSON.parse(localStorage.getItem('montana_cart')) || [];
+
+    function saveCart(){ localStorage.setItem('montana_cart', JSON.stringify(cart)); updateCartCount(); }
+    function updateCartCount(){ cartCountEl.textContent = cart.length; }
+
+    function renderCatalog(){
+      grid.innerHTML = '';
+      products.forEach(p=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${p.img}" alt="${p.title}">
+          <h3>${p.title}</h3>
+          <p class="price">$${p.price} MXN</p>
+        `;
+        card.addEventListener('click', ()=> openProduct(p.id));
+        grid.appendChild(card);
+      });
+    }
+
+    function openProduct(id){
+      const p = products.find(x=>x.id===id);
+      if(!p) return;
+      detailCard.innerHTML = `
+        <img src="${p.img}" alt="${p.title}">
+        <div class="detail-info">
+          <h1>${p.title}</h1>
+          <p class="price">$${p.price} MXN</p>
+          <p class="desc">${p.desc}</p>
+          <div class="btn-row">
+            <button class="btn buy" onclick="buyProduct(${p.id})">Comprar</button>
+            <button class="btn add" onclick="addToCart(${p.id})">+ Carrito</button>
+            <button class="btn" onclick="backToCatalog()" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">Volver</button>
+          </div>
+        </div>
+      `;
+      fadeSwitch(catalog, detail);
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function addToCart(id){
+      const p = products.find(x=>x.id===id);
+      cart.push({id:p.id,title:p.title,price:p.price,qty:1});
+      saveCart();
+      showToast("Agregado al carrito");
+    }
+
+    function buyProduct(id){
+      addToCart(id);
+      modalBackdrop.style.display = 'flex';
+      setTimeout(()=> thankModal.classList.add('show'),10);
+    }
+
+    function closeModal(){
+      thankModal.classList.remove('show');
+      setTimeout(()=> modalBackdrop.style.display='none',250);
+    }
+
+    cartBtn.addEventListener('click', ()=>{
+      if(cart.length===0){ alert("Tu carrito está vacío 🛒"); return; }
+      let msg = "🛍️ Tu carrito:\n\n";
+      let total = 0;
+      cart.forEach((it,i)=>{
+        msg += `${i+1}. ${it.title} — $${it.price} MXN\n`;
+        total += it.price;
+      });
+      msg += `\nTotal: $${total} MXN`;
+      alert(msg);
+    });
+
+    // 🔧 Fade corregido
+    function fadeSwitch(hideEl, showEl){
+      hideEl.classList.remove('visible');
+      hideEl.classList.add('fade');
+      setTimeout(()=>{
+        hideEl.style.position = 'absolute';
+        hideEl.style.visibility = 'hidden';
+        showEl.style.position = 'relative';
+        showEl.style.visibility = 'visible';
+        showEl.classList.remove('fade');
+        showEl.classList.add('visible');
+      },420);
+    }
+
+    function backToCatalog(){
+      fadeSwitch(detail, catalog);
+      window.scrollTo({top:0,behavior:'smooth'});
+      catalog.style.position = 'relative';
+      catalog.style.visibility = 'visible';
+      detail.style.position = 'absolute';
+      detail.style.visibility = 'hidden';
+    }
+
+    let toastTimeout;
+    function showToast(text){
+      toast.textContent = text;
+      toast.style.display = 'block';
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(()=>{ toast.style.display='none' },1600);
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderCatalog();
+      updateCartCount();
+      const music = document.getElementById('music');
+      music.volume = 0.5;
+      music.play().catch(()=>{ document.body.addEventListener('click', ()=> music.play(), {once:true}); });
+    });
+  </script>
+</body>
+</html>

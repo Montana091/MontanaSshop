@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Music Player</title>
+</head>
+<body style="margin:0;">
+  <audio id="bg-music" autoplay loop>
+    <source src="mus.mp3" type="audio/mpeg">
+    Tu navegador no soporta el audio.
+  </audio>
+
+  <script>
+    // Mantiene la música sonando entre páginas
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('musicTime', document.getElementById('bg-music').currentTime);
+    });
+
+    window.addEventListener('load', () => {
+      const audio = document.getElementById('bg-music');
+      const savedTime = localStorage.getItem('musicTime');
+      if (savedTime) {
+        audio.currentTime = savedTime;
+      }
+      audio.play().catch(() => {});
+    });
+  </script>
+</body>
+</html>
